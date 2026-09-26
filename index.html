@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1b2a">
+<title>阿星梦想空间</title>
+<style>
+:root{--bg:#0d1b2a;--bg2:#12263f;--card:#16304d;--gold:#e8c872;--gold2:#c9a24d;
+--txt:#e8eef5;--sub:#8fa3b8;--line:#23415f;--red:#e06c60;--green:#7bc98a;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;padding-bottom:70px}
+.wrap{max-width:760px;margin:0 auto;padding:14px}
+h1{font-size:22px;letter-spacing:3px;color:var(--gold);text-align:center;padding:14px 0 4px}
+.sub{text-align:center;color:var(--sub);font-size:12px;padding-bottom:12px}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--line);
+display:flex;z-index:99;height:58px}
+.tabs button{flex:1;background:none;border:none;color:var(--sub);font-size:11px;padding:6px 0 2px;cursor:pointer}
+.tabs button.on{color:var(--gold)}
+.tabs button .ic{font-size:19px;display:block;margin-bottom:2px}
+.page{display:none}.page.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h3{color:var(--gold);font-size:15px;margin-bottom:10px;letter-spacing:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+input,select,textarea{background:var(--bg);border:1px solid var(--line);color:var(--txt);
+border-radius:8px;padding:9px 10px;font-size:14px;width:100%;outline:none}
+textarea{resize:vertical;min-height:70px}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+.btn{background:linear-gradient(135deg,#1a2f47,#25405f);color:var(--gold);border:1px solid var(--gold2);
+border-radius:9px;padding:9px 16px;font-size:14px;cursor:pointer}
+.btn:active{opacity:.75}
+.btn.gold{background:linear-gradient(135deg,#8a6a2f,#b8934a);color:#fff;border:none}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.red{border-color:var(--red);color:var(--red);background:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--bg);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:19px;color:var(--gold)}
+.stat span{font-size:11px;color:var(--sub)}
+.item{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.item .t{font-size:14px}.item .m{font-size:11px;color:var(--sub);margin-top:4px}
+.tag{display:inline-block;font-size:10px;background:#1c3a5e;color:var(--gold);border-radius:6px;padding:2px 7px;margin-right:4px}
+.tag.warn{background:#5e2a1c;color:#f0a090}
+.pinned{border-left:3px solid var(--gold)}
+.empty{color:var(--sub);text-align:center;padding:20px;font-size:13px}
+select{appearance:none}
+.foot{font-size:11px;color:var(--sub);text-align:center;padding:10px}
+@media(min-width:760px){body{padding-bottom:80px}.tabs{max-width:760px;margin:0 auto;left:0;right:0;position:fixed}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🌟 阿星梦想空间</h1>
+<div class="sub">灵感 · 工作 · 财务 · 习惯 ｜ 数据在本机浏览器，记得定期导出备份</div>
+
+<!-- 总览 -->
+<div class="page on" id="p-home">
+  <div class="card"><h3>📊 空间总览</h3><div class="grid2" id="dash"></div></div>
+  <div class="card"><h3>📜 今日经典</h3><div id="daily" style="font-size:14px;line-height:1.9"></div></div>
+</div>
+
+<!-- 灵感笔记 -->
+<div class="page" id="p-note">
+  <div class="card"><h3>✍️ 记一条灵感</h3>
+    <div class="row" style="margin-bottom:8px">
+      <select id="n-cat" style="flex:1">
+        <option>个人IP</option><option>AI灵感</option><option>跨境电商</option>
+        <option>国内电商</option><option>工作计划</option><option>随手记</option>
+      </select>
+      <input id="n-title" placeholder="标题" style="flex:2">
+    </div>
+    <textarea id="n-body" placeholder="内容…"></textarea>
+    <div class="row" style="margin-top:8px;align-items:center">
+      <input id="n-tag" placeholder="标签(逗号分隔)" style="flex:2">
+      <label style="font-size:13px;color:var(--sub)"><input type="checkbox" id="n-pin" style="width:auto"> 📌置顶</label>
+      <button class="btn gold" onclick="addNote()">保存</button>
+    </div>
+  </div>
+  <div class="card"><h3>📚 灵感库 <span style="font-size:11px;color:var(--sub)">（点条目展开）</span></h3><div id="note-list"></div></div>
+</div>
+
+<!-- 待办 -->
+<div class="page" id="p-todo">
+  <div class="card"><h3>➕ 新待办</h3>
+    <div class="row">
+      <input id="t-title" placeholder="要做什么" style="flex:3">
+      <select id="t-pri" style="flex:1"><option>高</option><option selected>中</option><option>低</option></select>
+      <input id="t-due" type="date" style="flex:2">
+      <button class="btn gold" onclick="addTodo()">添加</button>
+    </div>
+  </div>
+  <div class="card"><h3>📋 未完成</h3><div id="todo-list"></div></div>
+  <div class="card"><h3>✅ 已完成（最近20）</h3><div id="todo-done"></div></div>
+</div>
+
+<!-- 客户跟进 -->
+<div class="page" id="p-client">
+  <div class="card"><h3>🤝 登记客户/老板</h3>
+    <div class="row" style="margin-bottom:8px">
+      <input id="c-name" placeholder="称呼（如：A老板-张姐）" style="flex:2">
+      <input id="c-biz" placeholder="行业/公司" style="flex:2">
+    </div>
+    <input id="c-note" placeholder="备注（项目/痛点/关键人）" style="margin-bottom:8px">
+    <button class="btn gold" onclick="addClient()">登记</button>
+  </div>
+  <div id="client-list"></div>
+</div>
+
+<!-- 财务 -->
+<div class="page" id="p-money">
+  <div class="card"><h3>💰 记一笔</h3>
+    <div class="row" style="margin-bottom:8px">
+      <select id="m-type" style="flex:1"><option>支出</option><option>收入</option></select>
+      <input id="m-amt" type="number" placeholder="金额" style="flex:2">
+      <input id="m-cat" placeholder="分类(如 进货)" style="flex:2">
+    </div>
+    <input id="m-note" placeholder="备注" style="margin-bottom:8px">
+    <button class="btn gold" onclick="addTx()">记账</button>
+  </div>
+  <div class="card"><h3>📈 本月汇总</h3><div class="grid2" id="money-dash"></div></div>
+  <div class="card"><h3>📄 明细（最近50）</h3><div id="tx-list"></div></div>
+</div>
+
+<!-- 习惯打卡 -->
+<div class="page" id="p-habit">
+  <div class="card"><h3>🌱 习惯</h3>
+    <div class="row">
+      <input id="h-name" placeholder="习惯名（如 23点前睡）" style="flex:3">
+      <button class="btn gold" onclick="addHabit()">添加</button>
+    </div>
+  </div>
+  <div id="habit-list"></div>
+</div>
+
+<!-- 我的 -->
+<div class="page" id="p-me">
+  <div class="card"><h3>⚙️ 数据管理</h3>
+    <div class="row">
+      <button class="btn" onclick="exportData()">📤 导出全部数据</button>
+      <button class="btn" onclick="document.getElementById('imp').click()">📥 导入数据</button>
+      <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="foot" id="bk-time" style="text-align:left;margin-top:8px"></div>
+  </div>
+  <div class="card"><h3>📖 使用说明</h3>
+    <div style="font-size:13px;color:var(--sub);line-height:2">
+      · 数据存在本机浏览器，清除浏览器数据会丢失，请定期导出<br>
+      · 手机和电脑数据独立，用"导出/导入"搬运<br>
+      · 添加到主屏幕：浏览器菜单 → 添加到主屏幕
+    </div>
+  </div>
+</div>
+</div>
+
+<nav class="tabs">
+  <button class="on" onclick="go('home',this)"><span class="ic">🏠</span>总览</button>
+  <button onclick="go('note',this)"><span class="ic">💡</span>灵感</button>
+  <button onclick="go('todo',this)"><span class="ic">✅</span>待办</button>
+  <button onclick="go('client',this)"><span class="ic">🤝</span>客户</button>
+  <button onclick="go('money',this)"><span class="ic">💰</span>财务</button>
+  <button onclick="go('habit',this)"><span class="ic">🌱</span>打卡</button>
+  <button onclick="go('me',this)"><span class="ic">⚙️</span>我的</button>
+</nav>
+
+<script>
+/* ============ 数据层（localStorage） ============ */
+const K="axing_dream_v1";
+let DB=JSON.parse(localStorage.getItem(K)||'{"notes":[],"todos":[],"clients":[],"txs":[],"habits":[],"checks":{},"bk":""}');
+function save(){localStorage.setItem(K,JSON.stringify(DB))}
+function today(){return new Date().toISOString().slice(0,10)}
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+const CLASSIC=[
+["《道德经》","上善若水。水善利万物而不争。","最高的善像水，滋养万物而不争。"],
+["《孙子兵法》","胜兵先胜而后求战。","先算好能赢再打，而不是打了再说。"],
+["《易经》","穷则变，变则通，通则久。","走到尽头就要变，变了就能通，通了就能长久。"],
+["《金刚经》","凡所有相，皆是虚妄。","一切表象都是暂时的，别被眼前困住。"],
+["《论语》","己所不欲，勿施于人。","自己不想要的，别强加给别人。"],
+["《荀子》","不积跬步，无以至千里。","千里之行，始于足下每一小步。"]];
+
+/* ============ 导航 ============ */
+function go(p,btn){
+  document.querySelectorAll(".page").forEach(e=>e.classList.remove("on"));
+  document.getElementById("p-"+p).classList.add("on");
+  document.querySelectorAll(".tabs button").forEach(e=>e.classList.remove("on"));
+  btn.classList.add("on");window.scrollTo(0,0);render();
+}
+
+/* ============ 总览 ============ */
+function renderDash(){
+  const done=DB.todos.filter(t=>!t.done).length;
+  const m=today().slice(0,7);
+  const txs=DB.txs.filter(x=>x.date.startsWith(m));
+  const inc=txs.filter(x=>x.type==="收入").reduce((s,x)=>s+x.amt,0);
+  const exp=txs.filter(x=>x.type==="支出").reduce((s,x)=>s+x.amt,0);
+  let study=0;
+  const stats=[["灵感笔记",DB.notes.length],["待办未完成",done+" 项"],["客户数",DB.clients.length],
+    ["本月收入","¥"+inc.toFixed(0)],["本月支出","¥"+exp.toFixed(0)],["本月结余","¥"+(inc-exp).toFixed(0)],
+    ["习惯数",DB.habits.length],["记账笔数",DB.txs.length]];
+  document.getElementById("dash").innerHTML=stats.map(s=>
+    `<div class="stat"><b>${s[1]}</b><span>${s[0]}</span></div>`).join("");
+  const d=CLASSIC[Math.floor(Date.now()/86400000)%CLASSIC.length];
+  document.getElementById("daily").innerHTML=
+    `<b style="color:var(--gold)">${d[0]}</b><br>「${d[1]}」<br><span style="color:var(--sub);font-size:13px">💡 ${d[2]}</span>`;
+}
+
+/* ============ 灵感 ============ */
+function addNote(){
+  const b=document.getElementById("n-body").value.trim();
+  if(!b)return alert("写点内容再保存");
+  DB.notes.unshift({id:Date.now(),cat:document.getElementById("n-cat").value,
+    title:document.getElementById("n-title").value.trim(),body:b,
+    tag:document.getElementById("n-tag").value.trim(),
+    pin:document.getElementById("n-pin").checked,date:today()});
+  document.getElementById("n-title").value="";document.getElementById("n-body").value="";
+  document.getElementById("n-tag").value="";document.getElementById("n-pin").checked=false;
+  save();renderNotes();
+}
+function delNote(id){if(confirm("删除这条灵感？")){DB.notes=DB.notes.filter(n=>n.id!==id);save();renderNotes()}}
+function togglePin(id){const n=DB.notes.find(n=>n.id===id);n.pin=!n.pin;save();renderNotes()}
+function renderNotes(){
+  const list=[...DB.notes].sort((a,b)=>(b.pin-a.pin)||(b.id-a.id));
+  document.getElementById("note-list").innerHTML=list.length?list.map(n=>
+    `<div class="item ${n.pin?'pinned':''}" onclick="this.querySelector('.bd').style.display=this.querySelector('.bd').style.display==='block'?'none':'block'">
+      <div class="t">${n.pin?'📌 ':''}${esc(n.title)||esc(n.body.slice(0,20))} <span class="tag">${n.cat}</span>${n.tag?`<span class="tag">${esc(n.tag)}</span>`:''}</div>
+      <div class="m">${n.date}</div>
+      <div class="bd" style="display:none;font-size:13px;color:var(--sub);margin-top:6px;line-height:1.8">${esc(n.body)}</div>
+      <div style="margin-top:6px"><button class="btn sm red" onclick="event.stopPropagation();delNote(${n.id})">删除</button>
+      <button class="btn sm" onclick="event.stopPropagation();togglePin(${n.id})">${n.pin?'取消置顶':'置顶'}</button></div>
+    </div>`).join(""):`<div class="empty">还没有灵感，记一条吧</div>`;
+}
+
+/* ============ 待办 ============ */
+function addTodo(){
+  const t=document.getElementById("t-title").value.trim();if(!t)return alert("写点内容");
+  DB.todos.unshift({id:Date.now(),title:t,pri:document.getElementById("t-pri").value,
+    due:document.getElementById("t-due").value,done:false,dd:""});
+  document.getElementById("t-title").value="";save();renderTodos();
+}
+function doneTodo(id){const t=DB.todos.find(t=>t.id===id);t.done=true;t.dd=today();save();renderTodos()}
+function delTodo(id){DB.todos=DB.todos.filter(t=>t.id!==id);save();renderTodos()}
+function renderTodos(){
+  const open=DB.todos.filter(t=>!t.done);
+  document.getElementById("todo-list").innerHTML=open.length?open.map(t=>{
+    const late=t.due&&t.due<today();
+    return `<div class="item"><div class="t">${t.title} <span class="tag ${late?'warn':''}">${t.pri}${late?' · 逾期':''}</span></div>
+    <div class="m">${t.due?'截止 '+t.due:''}</div>
+    <div style="margin-top:6px"><button class="btn sm gold" onclick="doneTodo(${t.id})">✓ 完成</button>
+    <button class="btn sm red" onclick="delTodo(${t.id})">删</button></div></div>`}).join(""):
+    `<div class="empty">🎉 全部完成</div>`;
+  const dn=DB.todos.filter(t=>t.done).slice(0,20);
+  document.getElementById("todo-done").innerHTML=dn.length?dn.map(t=>
+    `<div class="item" style="opacity:.55"><div class="t">✅ ${esc(t.title)}</div><div class="m">${t.dd}</div></div>`).join(""):
+    `<div class="empty">暂无</div>`;
+}
+
+/* ============ 客户 ============ */
+function addClient(){
+  const n=document.getElementById("c-name").value.trim();if(!n)return alert("填称呼");
+  DB.clients.push({id:Date.now(),name:n,biz:document.getElementById("c-biz").value.trim(),
+    note:document.getElementById("c-note").value.trim(),logs:[]});
+  document.getElementById("c-name").value="";document.getElementById("c-biz").value="";document.getElementById("c-note").value="";
+  save();renderClients();
+}
+function addLog(cid){
+  const c=DB.clients.find(c=>c.id===cid);
+  const v=prompt(`给【${c.name}】记一条跟进：`);if(!v)return;
+  c.logs.unshift({d:today(),t:v});save();renderClients();
+}
+function delClient(id){if(confirm("删除该客户？")){DB.clients=DB.clients.filter(c=>c.id!==id);save();renderClients()}}
+function renderClients(){
+  document.getElementById("client-list").innerHTML=DB.clients.length?DB.clients.slice().reverse().map(c=>
+    `<div class="card"><h3>${esc(c.name)} <span style="font-size:11px;color:var(--sub)">${esc(c.biz)}</span></h3>
+    ${c.note?`<div style="font-size:12px;color:var(--sub);margin-bottom:6px">${esc(c.note)}</div>`:''}
+    <div style="font-size:13px;line-height:2">${c.logs.length?c.logs.slice(0,3).map(l=>`<div>· ${l.d} ${esc(l.t)}</div>`).join(""):'<span style="color:var(--sub)">暂无跟进记录</span>'}</div>
+    <div class="row" style="margin-top:8px"><button class="btn sm" onclick="addLog(${c.id})">＋记跟进</button>
+    <button class="btn sm red" onclick="delClient(${c.id})">删除</button></div></div>`).join(""):
+    `<div class="card"><div class="empty">还没登记客户</div></div>`;
+}
+
+/* ============ 财务 ============ */
+function addTx(){
+  const a=parseFloat(document.getElementById("m-amt").value);
+  if(!a||a<=0)return alert("金额要大于0");
+  DB.txs.unshift({id:Date.now(),type:document.getElementById("m-type").value,amt:a,
+    cat:document.getElementById("m-cat").value.trim()||"其他",
+    note:document.getElementById("m-note").value.trim(),date:today()});
+  document.getElementById("m-amt").value="";document.getElementById("m-cat").value="";document.getElementById("m-note").value="";
+  save();renderMoney();
+}
+function delTx(id){DB.txs=DB.txs.filter(x=>x.id!==id);save();renderMoney()}
+function renderMoney(){
+  const m=today().slice(0,7);
+  const txs=DB.txs.filter(x=>x.date.startsWith(m));
+  const inc=txs.filter(x=>x.type==="收入").reduce((s,x)=>s+x.amt,0);
+  const exp=txs.filter(x=>x.type==="支出").reduce((s,x)=>s+x.amt,0);
+  document.getElementById("money-dash").innerHTML=
+    `<div class="stat"><b style="color:var(--green)">¥${inc.toFixed(2)}</b><span>本月收入</span></div>
+     <div class="stat"><b style="color:var(--red)">¥${exp.toFixed(2)}</b><span>本月支出</span></div>
+     <div class="stat"><b>¥${(inc-exp).toFixed(2)}</b><span>结余</span></div>
+     <div class="stat"><b>${txs.length}</b><span>笔数</span></div>`;
+  document.getElementById("tx-list").innerHTML=DB.txs.slice(0,50).map(x=>
+    `<div class="item"><div class="t">${x.type==='收入'?'🟢':'🔴'} ${esc(x.cat)} ¥${x.amt.toFixed(2)} <span class="tag">${x.date}</span></div>
+    ${x.note?`<div class="m">${esc(x.note)}</div>`:''}
+    <div style="margin-top:4px"><button class="btn sm red" onclick="delTx(${x.id})">删</button></div></div>`).join("")||`<div class="empty">暂无账目</div>`;
+}
+
+/* ============ 习惯 ============ */
+function addHabit(){
+  const n=document.getElementById("h-name").value.trim();if(!n)return;
+  DB.habits.push({id:Date.now(),name:n});document.getElementById("h-name").value="";
+  save();renderHabits();
+}
+function checkHabit(id){
+  const k=id+"_"+today();
+  DB.checks[k]=!DB.checks[k];save();renderHabits();
+}
+function delHabit(id){
+  if(!confirm("删除该习惯？"))return;
+  DB.habits=DB.habits.filter(h=>h.id!==id);
+  Object.keys(DB.checks).forEach(k=>{if(k.startsWith(id+"_"))delete DB.checks[k]});
+  save();renderHabits();
+}
+function renderHabits(){
+  document.getElementById("habit-list").innerHTML=DB.habits.length?DB.habits.map(h=>{
+    const ck=!!DB.checks[h.id+"_"+today()];
+    let streak=0,d=new Date();
+    while(DB.checks[h.id+"_"+d.toISOString().slice(0,10)]){streak++;d.setDate(d.getDate()-1)}
+    return `<div class="card"><div class="row" style="align-items:center">
+      <div style="flex:3"><b>${esc(h.name)}</b><div class="m" style="font-size:11px;color:var(--sub)">连续 ${streak} 天</div></div>
+      <button class="btn ${ck?'gold':''}" onclick="checkHabit(${h.id})">${ck?'✅ 已打卡':'○ 打卡'}</button>
+      <button class="btn sm red" onclick="delHabit(${h.id})">删</button></div></div>`}).join(""):
+    `<div class="card"><div class="empty">添加一个习惯开始打卡（如：早起喝水）</div></div>`;
+}
+
+/* ============ 导入导出 ============ */
+function exportData(){
+  DB.bk=new Date().toLocaleString();
+  const blob=new Blob([JSON.stringify(DB,null,1)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="阿星梦想空间备份_"+today()+".json";a.click();save();
+  document.getElementById("bk-time").textContent="最近导出："+DB.bk;
+  alert("已导出备份文件，请保存到微信文件传输助手或网盘");
+}
+function importData(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{DB=JSON.parse(r.result);save();render();alert("导入成功")}catch(e){alert("文件不对")}};
+  r.readAsText(f);
+}
+
+function render(){renderDash();renderNotes();renderTodos();renderClients();renderMoney();renderHabits();
+  document.getElementById("bk-time").textContent=DB.bk?("最近导出："+DB.bk):"尚未导出过备份"}
+render();
+/* PWA: 注册 service worker（和 index.html 同目录放 sw.js）*/
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+</body>
+</html>
